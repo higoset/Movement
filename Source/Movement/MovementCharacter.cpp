@@ -16,13 +16,17 @@ AMovementCharacter::AMovementCharacter()
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
+	//set initial movement input
+	movementNumber = 0;
+	startingWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->bOrientRotationToMovement = false; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
@@ -42,6 +46,24 @@ AMovementCharacter::AMovementCharacter()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
 
+void AMovementCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	if (movementNumber > 0) {
+		int Value = movementNumber;
+		GetCharacterMovement()->MaxWalkSpeed = startingWalkSpeed * Value;
+		const FVector Direction = GetActorForwardVector();
+		AddMovementInput(Direction, 1);
+	}
+	if (movementNumber < 0) {
+		int Value = movementNumber*(-1);
+		GetCharacterMovement()->MaxWalkSpeed = startingWalkSpeed * Value;
+		const FVector Direction = GetActorForwardVector();
+		AddMovementInput(Direction, -1);
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -52,7 +74,13 @@ void AMovementCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &AMovementCharacter::MoveForward);
+	PlayerInputComponent->BindAction("ForwardMovement", IE_Pressed, this, &AMovementCharacter::ForwardMovement);
+	PlayerInputComponent->BindAction("ForwardMovement", IE_DoubleClick, this, &AMovementCharacter::FullForward);
+	PlayerInputComponent->BindAction("BackwardMovement", IE_Pressed, this, &AMovementCharacter::BackwardMovement);
+	PlayerInputComponent->BindAction("BackwardMovement", IE_DoubleClick, this, &AMovementCharacter::FullBackward);
+	PlayerInputComponent->BindAction("StopMovement", IE_Pressed, this, &AMovementCharacter::StopMovement);
+
+	//PlayerInputComponent->BindAxis("MoveForward", this, &AMovementCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMovementCharacter::MoveRight);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
@@ -98,7 +126,7 @@ void AMovementCharacter::LookUpAtRate(float Rate)
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
-
+/*
 void AMovementCharacter::MoveForward(float Value)
 {
 	if ((Controller != NULL) && (Value != 0.0f))
@@ -114,7 +142,7 @@ void AMovementCharacter::MoveForward(float Value)
 		AddMovementInput(Direction, Value);
 	}
 }
-
+*/
 void AMovementCharacter::MoveRight(float Value)
 {
 	if ( (Controller != NULL) && (Value != 0.0f) )
@@ -126,4 +154,28 @@ void AMovementCharacter::MoveRight(float Value)
 		//rotate actor 
 		SetActorRotation(Rotation);
 	}
+}
+
+void AMovementCharacter::ForwardMovement() {
+	if (movementNumber < 4) {
+		movementNumber++;
+	}
+}
+
+void AMovementCharacter::BackwardMovement() {
+	if (movementNumber > -4) {
+		movementNumber--;
+	}
+}
+
+void AMovementCharacter::StopMovement() {
+	movementNumber = 0;
+}
+
+void AMovementCharacter::FullForward() {
+	movementNumber = 4;
+}
+
+void AMovementCharacter::FullBackward() {
+	movementNumber = -4;
 }
