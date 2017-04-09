@@ -2,7 +2,9 @@
 
 #include "Movement.h"
 #include "Kismet/HeadMountedDisplayFunctionLibrary.h"
+#include "EngineUtils.h"
 #include "MovementCharacter.h"
+#include <string>
 
 //////////////////////////////////////////////////////////////////////////
 // AMovementCharacter
@@ -17,7 +19,9 @@ AMovementCharacter::AMovementCharacter()
 	BaseLookUpRate = 45.f;
 
 	//set initial movement input
-	movementNumber = 0;
+	movementNumber = 0.0f;
+	lastMovementNumber = 0.0f;
+	movementMultiplier = 0.0f;
 	startingWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
@@ -50,17 +54,68 @@ void AMovementCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	if (movementNumber > 0) {
-		int Value = movementNumber;
-		GetCharacterMovement()->MaxWalkSpeed = startingWalkSpeed * Value;
+	if (movementNumber > 0 && lastMovementNumber >= 0) {
+		if (movementMultiplier != movementNumber && movementNumber > movementMultiplier) {
+			movementMultiplier += 0.01f;
+		}
+		else if (movementNumber != movementMultiplier && movementNumber < movementMultiplier) {
+			movementMultiplier -= 0.01f;
+		}
+		GetCharacterMovement()->MaxWalkSpeed = startingWalkSpeed * movementMultiplier;
 		const FVector Direction = GetActorForwardVector();
-		AddMovementInput(Direction, 1);
+		AddMovementInput(Direction, 1.0f);
+		lastMovementNumber = movementNumber;
 	}
-	if (movementNumber < 0) {
-		int Value = movementNumber*(-1);
-		GetCharacterMovement()->MaxWalkSpeed = startingWalkSpeed * Value;
+	else if (movementNumber > 0 && lastMovementNumber < 0) {
+		if (movementMultiplier > 0.0f) {
+			movementMultiplier -= 0.01f;
+			GetCharacterMovement()->MaxWalkSpeed = startingWalkSpeed * movementMultiplier;
+			const FVector Direction = GetActorForwardVector();
+			AddMovementInput(Direction, -1.0f);
+		}
+		else{
+			lastMovementNumber = movementNumber;
+		}
+	}
+	else if (movementNumber < 0.0f && lastMovementNumber <= 0.0f) {
+		if (movementMultiplier != (movementNumber * (-1)) && (movementNumber * (-1)) > movementMultiplier) {
+			movementMultiplier += 0.01f;
+		}
+		else if (movementNumber != (movementNumber * (-1)) && (movementNumber * (-1)) < movementMultiplier) {
+			movementMultiplier -= 0.01f;
+		}
+		GetCharacterMovement()->MaxWalkSpeed = startingWalkSpeed * movementMultiplier;
 		const FVector Direction = GetActorForwardVector();
-		AddMovementInput(Direction, -1);
+		AddMovementInput(Direction, -1.0f);
+		lastMovementNumber = movementNumber;
+	}
+	else if (movementNumber < 0.0f && lastMovementNumber > 0.0f) {
+		if (movementMultiplier > 0.0f) {
+			movementMultiplier -= 0.01f;
+			GetCharacterMovement()->MaxWalkSpeed = startingWalkSpeed * movementMultiplier;
+			const FVector Direction = GetActorForwardVector();
+			AddMovementInput(Direction, 1.0f);
+		}
+		else {
+			lastMovementNumber = movementNumber;
+		}
+	}
+	else if (movementNumber == 0.0f) {
+		if (movementMultiplier > movementNumber) {
+			movementMultiplier -= 0.01f;
+			GetCharacterMovement()->MaxWalkSpeed = startingWalkSpeed * movementMultiplier;
+			if (lastMovementNumber > 0) {
+				const FVector Direction = GetActorForwardVector();
+				AddMovementInput(Direction, 1.0f);
+			}
+			else if (lastMovementNumber < 0) {
+				const FVector Direction = GetActorForwardVector();
+				AddMovementInput(Direction, -1.0f);
+			}
+		}
+		else {
+			lastMovementNumber = 0.0f;
+		}
 	}
 }
 
@@ -169,13 +224,14 @@ void AMovementCharacter::BackwardMovement() {
 }
 
 void AMovementCharacter::StopMovement() {
-	movementNumber = 0;
+	movementNumber = 0.0f;
 }
 
 void AMovementCharacter::FullForward() {
-	movementNumber = 4;
+	movementNumber = 4.0f;
 }
 
 void AMovementCharacter::FullBackward() {
-	movementNumber = -4;
+	
+	movementNumber = -4.0f;
 }
