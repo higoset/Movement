@@ -75,7 +75,10 @@ void AMovementCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("ForwardMovement", IE_Pressed, this, &AMovementCharacter::ForwardMovement);
+	PlayerInputComponent->BindAction("ForwardMovement", IE_DoubleClick, this, &AMovementCharacter::FullForward);
 	PlayerInputComponent->BindAction("BackwardMovement", IE_Pressed, this, &AMovementCharacter::BackwardMovement);
+	PlayerInputComponent->BindAction("BackwardMovement", IE_DoubleClick, this, &AMovementCharacter::FullBackward);
+	PlayerInputComponent->BindAction("StopMovement", IE_Pressed, this, &AMovementCharacter::StopMovement);
 
 	//PlayerInputComponent->BindAxis("MoveForward", this, &AMovementCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMovementCharacter::MoveRight);
@@ -163,4 +166,16 @@ void AMovementCharacter::BackwardMovement() {
 	if (movementNumber > -4) {
 		movementNumber--;
 	}
+}
+
+void AMovementCharacter::StopMovement() {
+	movementNumber = 0;
+}
+
+void AMovementCharacter::FullForward() {
+	movementNumber = 4;
+}
+
+void AMovementCharacter::FullBackward() {
+	movementNumber = -4;
 }
