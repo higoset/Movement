@@ -26,9 +26,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	int movementNumber;
+	float movementNumber;
 
-	int startingWalkSpeed;
+	float lastMovementNumber;
+
+	float movementMultiplier;
+
+	float startingWalkSpeed;
 
 protected:
 
