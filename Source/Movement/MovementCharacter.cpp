@@ -181,7 +181,7 @@ void AMovementCharacter::MoveCharacter(float aMovementNumber, float aLastMovemen
 			movementMultiplier += (0.01f * aMovementNumber);
 		}
 		else if (aMovementNumber != aMovementMultiplier && aMovementNumber < aMovementMultiplier) {
-			movementMultiplier -= (0.01f * aMovementNumber);
+			movementMultiplier -= 0.01f;
 		}
 		GetCharacterMovement()->MaxWalkSpeed = startingWalkSpeed * movementMultiplier;
 		const FVector Direction = GetActorForwardVector();
@@ -204,7 +204,7 @@ void AMovementCharacter::MoveCharacter(float aMovementNumber, float aLastMovemen
 			movementMultiplier -= (0.01f * aMovementNumber);
 		}
 		else if (aMovementNumber != (aMovementNumber * (-1)) && (aMovementNumber * (-1)) < aMovementMultiplier) {
-			movementMultiplier += (0.01f * aMovementNumber);
+			movementMultiplier -= 0.01f;
 		}
 		GetCharacterMovement()->MaxWalkSpeed = startingWalkSpeed * movementMultiplier;
 		const FVector Direction = GetActorForwardVector();
